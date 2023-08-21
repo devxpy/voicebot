@@ -19,6 +19,15 @@ SERPER_API_KEY = config("SERPER_API_KEY")
 
 
 def get_unread_emails(n: int = 5):
+    """
+    Retrieves information about the specified number of unread emails.
+
+    Args:
+        n (int, optional): Number of unread emails to retrieve. Defaults to 5.
+
+    Returns:
+        list: List of dictionaries containing email information.
+    """
     service = gmail_service()
     results = (
         service.users()
@@ -49,6 +58,17 @@ def get_unread_emails(n: int = 5):
 
 
 def send_email(to_email: str, subject: str, body: str):
+    """
+    Sends an email using Gmail API.
+
+    Args:
+        to_email (str): Email address of the recipient.
+        subject (str): Email subject.
+        body (str): Email body.
+
+    Returns:
+        dict: Response message from Gmail API.
+    """
     service = gmail_service()
     message = (
         service.users()
@@ -61,6 +81,17 @@ def send_email(to_email: str, subject: str, body: str):
 
 
 def create_email_message(to_email: str, subject: str, body: str):
+    """
+    Creates an email message object.
+
+    Args:
+        to_email (str): Email address of the recipient.
+        subject (str): Email subject.
+        body (str): Email body.
+
+    Returns:
+        dict: Email message object.
+    """
     message = MIMEMultipart()
     message["to"] = to_email
     message["subject"] = subject
@@ -73,6 +104,16 @@ def create_email_message(to_email: str, subject: str, body: str):
 
 
 def google_search(query, location="in"):
+    """
+    Performs a Google search and retrieves search results.
+
+    Args:
+        query (str): Search query.
+        location (str, optional): Location for search results. Defaults to "in".
+
+    Returns:
+        dict: Dictionary containing search results.
+    """
     response = requests.post(
         "https://google.serper.dev/search",
         headers={"X-API-KEY": SERPER_API_KEY},
@@ -94,6 +135,15 @@ def google_search(query, location="in"):
 
 
 def gcal_delete_event(event_id: str):
+    """
+    Deletes a Google Calendar event.
+
+    Args:
+        event_id (str): ID of the event to be deleted.
+
+    Returns:
+        dict: Response from Google Calendar API.
+    """
     service = get_calendar_service()
     return service.events().delete(calendarId="primary", eventId=event_id).execute()
 
@@ -106,6 +156,20 @@ def gcal_update_event(
     location: str = None,
     attendee_emails: typing.List[str] = None,
 ):
+    """
+    Updates a Google Calendar event.
+
+    Args:
+        event_id (str): ID of the event to be updated.
+        summary (str): Updated event summary.
+        start_time (str): Updated start time of the event.
+        end_time (str): Updated end time of the event.
+        location (str, optional): Updated event location. Defaults to None.
+        attendee_emails (list, optional): Updated list of attendee email addresses. Defaults to None.
+
+    Returns:
+        dict: Response from Google Calendar API.
+    """
     service = get_calendar_service()
     event = service.events().get(calendarId="primary", eventId=event_id).execute()
     event["summary"] = summary
@@ -122,6 +186,16 @@ def gcal_update_event(
 
 
 def gcal_get_upcoming_events(start_time: str, end_time: str):
+    """
+    Retrieves upcoming Google Calendar events within the specified time range.
+
+    Args:
+        start_time (str): Start time of the time range.
+        end_time (str): End time of the time range.
+
+    Returns:
+        list: List of dictionaries containing event information.
+    """
     service = get_calendar_service()
     start_time = (
         datetime.datetime.fromisoformat(start_time)
@@ -169,6 +243,19 @@ def gcal_add_event(
     location: str = None,
     attendee_emails: typing.List[str] = None,
 ):
+    """
+    Adds a new event to Google Calendar.
+
+    Args:
+        summary (str): Event summary.
+        start_time (str): Start time of the event.
+        end_time (str): End time of the event.
+        location (str, optional): Event location. Defaults to None.
+        attendee_emails (list, optional): List of attendee email addresses. Defaults to None.
+
+    Returns:
+        dict: Response from Google Calendar API.
+    """
     event = {
         "summary": summary,
         "location": location,
@@ -189,10 +276,22 @@ def gcal_add_event(
 
 
 def gmail_service():
+    """
+    Initializes and returns a Gmail service instance.
+
+    Returns:
+        Resource: Gmail service instance.
+    """
     return build("gmail", "v1", credentials=get_credentials())
 
 
 def get_calendar_service():
+    """
+    Initializes and returns a Google Calendar service instance.
+
+    Returns:
+        Resource: Google Calendar service instance.
+    """
     return build("calendar", "v3", credentials=get_credentials())
 
 
@@ -200,6 +299,13 @@ _credentials = None
 
 
 def get_credentials():
+    """
+    Gets Google API credentials.
+
+    Returns:
+        Credentials: Google API credentials instance.
+    """
+
     global _credentials
     if _credentials is None:
         _credentials = Credentials.from_authorized_user_file("token.json", SCOPES)

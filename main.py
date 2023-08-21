@@ -150,6 +150,16 @@ EXAMPLES = []
 @app.get("/twilio/voice/")
 @app.post("/twilio/voice/")
 async def twilio_voice_webhook(request: Request, background_tasks: BackgroundTasks):
+    """
+    Handles Twilio voice webhook for incoming calls.
+
+    Args:
+        request (Request): The incoming request object containing the call data.
+        background_tasks (BackgroundTasks): Asynchronous tasks to be executed in the background.
+
+    Returns:
+        Response: A TwiML response containing instructions for handling the call.
+    """
     # print(request.headers)
     form_data = await request.form()
     print(">> twilio_voice_webhook:", form_data)
@@ -172,6 +182,16 @@ async def twilio_voice_webhook(request: Request, background_tasks: BackgroundTas
 
 
 def send_call(request: Request, form_data: FormData):
+    """
+    Initiates a Twilio call using the provided form data.
+
+    Args:
+        request (Request): The incoming request object containing call data.
+        form_data (FormData): Form data from the incoming request.
+
+    Returns:
+        None
+    """
     sleep(2)
     client = Client(ACCOUNT_SID, AUTH_TOKEN)
     from_ = form_data.get("To")
@@ -188,6 +208,15 @@ def send_call(request: Request, form_data: FormData):
 @app.post("/twilio/onaudio")
 @app.post("/twilio/onaudio/")
 async def onaudio(request: Request):
+    """
+    Handles incoming audio data from Twilio, processes it, and generates a TwiML response.
+
+    Args:
+        request (Request): The incoming request object containing audio data.
+
+    Returns:
+        Response: A TwiML response containing instructions based on the processed audio data.
+    """
     # print(request.headers)
     form_data = await request.form()
     print(">> onaudio:", form_data)
@@ -223,6 +252,16 @@ async def onaudio(request: Request):
 
 
 async def run_translate(prompt, *, target_language):
+    """
+    Translates the provided prompt to the target language using the Google Translate API.
+
+    Args:
+        prompt (str): The text to be translated.
+        target_language (str): The target language code for translation.
+
+    Returns:
+        str: The translated text in the target language.
+    """
     return await run_in_threadpool(
         lambda: translate.Client().translate(
             prompt,
@@ -232,6 +271,17 @@ async def run_translate(prompt, *, target_language):
 
 
 def gather_input_twiml(request, text=intro_text):
+    """
+    Generates TwiML for gathering speech input from the user.
+
+    Args:
+        request (Request): The incoming request object containing audio data.
+        text (str, optional): The text to be spoken in the voice prompt. Defaults to intro_text.
+
+    Returns:
+        str: A TwiML response containing the Gather instruction for speech input.
+    """
+
     return f"""
     <Response>
         <Gather input="speech" speechModel="phone_call" enhanced="true" language="{LANG_CODE}" timeout="{TIMEOUT}" action="http://{request.headers["host"]}/twilio/onaudio">
@@ -243,6 +293,15 @@ def gather_input_twiml(request, text=intro_text):
 
 
 def handle_ws_disconnect(fn):
+    """
+    A decorator that handles WebSocket disconnect exceptions gracefully.
+
+    Args:
+        fn: The original function to be wrapped.
+
+    Returns:
+        The decorated function.
+    """
     @wraps(fn)
     async def wrapper(*args, **kwargs):
         try:
@@ -254,6 +313,15 @@ def handle_ws_disconnect(fn):
 
 
 def _palm_react(prompt):
+    """
+    Processes the provided prompt, generates an observation, and returns the response.
+
+    Args:
+        prompt (str): The user's input prompt.
+
+    Returns:
+        str: The assistant's response.
+    """
     history = get_msgs()
     response = _palm_chat(prompt, history)
     # print(">> raw_response:", repr(response))
@@ -294,6 +362,17 @@ def _palm_react(prompt):
 
 
 def _palm_chat(prompt, history=None, model_id="chat-bison"):
+    """
+    Conducts a conversation with the chat model using the provided prompt and history.
+
+    Args:
+        prompt (str): The user's input prompt.
+        history (list, optional): List of previous conversation messages. Defaults to None.
+        model_id (str, optional): The ID of the chat model. Defaults to "chat-bison".
+
+    Returns:
+        str: The model's response.
+    """
     session, project = get_google_auth_session()
     history = history or []
     r = session.post(
@@ -329,6 +408,12 @@ _session = None
 
 
 def get_google_auth_session():
+    """
+    Gets an authorized Google Cloud session.
+
+    Returns:
+        tuple: A tuple containing an AuthorizedSession and the project name.
+    """
     global _session
 
     if _session is None:
@@ -345,11 +430,23 @@ def get_google_auth_session():
 
 
 def save_msgs(msgs):
+    """
+    Saves messages to a JSON file.
+
+    Args:
+        msgs (list): List of messages to be saved.
+    """
     with open("msgs.json", "w") as f:
         json.dump(msgs, f)
 
 
 def get_msgs():
+    """
+    Retrieves messages from a JSON file.
+
+    Returns:
+        list: List of messages.
+    """
     try:
         with open("msgs.json") as f:
             return json.load(f)
