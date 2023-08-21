@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+twilio
+google-auth-httplib2
+google-auth-oauthlib
+google-api-python-client
+google-cloud-texttospeech
+google-cloud-translate
+python-decouple
+python-multipart
